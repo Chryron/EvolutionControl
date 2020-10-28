@@ -1,6 +1,6 @@
 close all
 mu = 5;
-G_target = 0.7; 
+G_target = 0.3; 
 eta = 0.05;
 kp = 0.3;
 ki1 = 0.03;
