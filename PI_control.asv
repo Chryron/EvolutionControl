@@ -1,10 +1,9 @@
-close all
 mu = 5;
 G_target = 0.7; 
-eta = 0.05;
-kp = 0.3;
-ki1 = 0.03;
-ki2o = 0.45;
+eta = 0.0035;
+kp = 0.01;
+ki1 = 0.01;
+ki2o = 0.35;
 max_time = 100; %How long the simulation will run for.
 dt = 0.01; %The time step we will use for our simple integration.
 num = round(max_time/dt); % The number of time steps we are going to integrate for.
@@ -15,7 +14,7 @@ D_record=zeros(num+1,1);
 alpha_record=zeros(num+1,1);
 U_record=zeros(num+1,1);
 G = zeros(num+1,1);
-e_record = 0;
+
 n0=1;
 D0=0;
 alpha0=0.1;
@@ -37,7 +36,8 @@ for i=1:num
    D=D_record(i,:);
    alpha=alpha_record(i,:);
    G_curr=G(i,:);
-   error = G_curr - G_target;
+   Gmax = max(G(1:i));
+   error = G_target - G_curr;
    if abs(error)>=0.15
        ki2 = 0;
    else
@@ -48,7 +48,7 @@ for i=1:num
    integral1=ki1*e_record;
    integral2=ki2*e_record;
    
-   U = (exp(eta*(kp*error+integral1+integral2))-1)/eta;
+   U = (exp(eta*(kp*error+ki1*trapz(e_record(1:i))+ki2*trapz(e_record(1:i))))-1)/eta;
    U(U<0)=0;
    nnew = n+dn_dt(n,D)*dt; 
    nnew(nnew<0)=0;
@@ -70,21 +70,21 @@ figure
 subplot(2,2,1)
 plot(time,n_record);
 xlabel('Time');
-ylabel('n','Rotation',0);
+ylabel('n');
 subplot(2,2,2)
 plot(time,U_record);
 xlabel('Time');
-ylabel('U','Rotation',0);
+ylabel('U');
 subplot(2,2,3)
 plot(time,D_record);
 xlabel('Time');
-ylabel('D','Rotation',0);
+ylabel('D');
 subplot(2,2,4)
 plot(time,alpha_record);
 set(gca, 'YScale', 'log')
 xlabel('Time');
-ylabel('\alpha','Rotation',0);
+ylabel('alpha');
 figure
 plot(time,G)
 xlabel('Time');
-ylabel('G','Rotation',0);
+ylabel('G');

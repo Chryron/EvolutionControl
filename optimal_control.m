@@ -24,6 +24,7 @@ n_record(1,:)=n0;
 D_record(1,:)=D0;
 alpha_record(1,:)=alpha0;
 
+U_test = 0:0.01:100;
 
 dn_dt=@(n,D)(n.*(2*exp(-D)-1)-(n.^2)*exp(-D));
 dD_dt=@(U,alpha,D)(U-alpha*D);
@@ -37,26 +38,18 @@ for i=1:num
    D=D_record(i,:);
    alpha=alpha_record(i,:);
    G_curr=G(i,:);
-   error = G_curr - G_target;
-   if abs(error)>=0.15
-       ki2 = 0;
-   else
-       ki2 = ki2o;
-   end
-    
-   e_record = e_record + error*dt;
-   integral1=ki1*e_record;
-   integral2=ki2*e_record;
-   
-   U = (exp(eta*(kp*error+integral1+integral2))-1)/eta;
-   U(U<0)=0;
+
    nnew = n+dn_dt(n,D)*dt; 
    nnew(nnew<0)=0;
+   D_test = D+dD_dt(U_test,alpha,D)*dt;
+   D_test(D_test<0)=0;
+   alphanew = alpha+dalpha_dt(alpha,n,D)*dt;
+
+   G_test = nnew*exp(-D_test);
+   [~, ind] = min(abs(G_test-G_target));
+   U = U_test(ind);
    Dnew = D+dD_dt(U,alpha,D)*dt;
    Dnew(Dnew<0)=0;
-   alphanew = alpha+dalpha_dt(alpha,n,D)*dt;
-   
-       
    
    %% Recording Final values each loop iteration
    n_record(i+1,:)=nnew;
