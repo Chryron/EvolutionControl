@@ -36,13 +36,13 @@ while alpha<10^5
    n=n_record(i,:);
    D=D_record(i,:);
    alpha=alpha_record(i,:);
-   G_curr=G(i,:);  
+   G_curr=G(i,:);
 
    nnew = n+dn_dt(n,D)*dt; 
    nnew(nnew<0)=0;
-   %if (U_record(i,:) > 0.7*ub + 0.3*lb) && (time(i)>0.02)
-   %   lb = 0.6*ub + 0.4*lb; ub = 6*ub-5*lb; 
-   %end
+   if (U_record(i,:) > 0.7*ub + 0.3*lb) && (time(i)>0.02)
+      lb = 0.6*ub + 0.4*lb; ub = 6*ub-5*lb; 
+   end
 %    if time(i)==22.28
 %         B="error";    
 %    end
@@ -50,13 +50,13 @@ while alpha<10^5
    U = (-D - log(G_target/(n)))/dt + alpha*D;
    
    %U_test = linspace(lb,ub,1000);
-   %D_test = D+dD_dt(U_test,alpha,D)*dt;
-   %D_test(D_test<0)=0;
+   D_test = D+dD_dt(U_test,alpha,D)*dt;
+   D_test(D_test<0)=0;
    alphanew = alpha+dalpha_dt(alpha,n,D)*dt;
    
-   %G_test = nnew*exp(-D_test);
-   %[~, ind] = min(abs(G_test-G_target));
-   %U = U_test(ind);
+   G_test = nnew*exp(-D_test);
+   [~, ind] = min(abs(G_test-G_target));
+   U = U_test(ind);
    Dnew = D+dD_dt(U,alpha,D)*dt;
    Dnew(Dnew<0)=0;
    
