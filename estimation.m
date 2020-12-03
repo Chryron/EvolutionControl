@@ -60,59 +60,33 @@ while alpha<10^5
 
    nnew = n+dn_dt(n,D)*dt; 
    nnew(nnew<0)=0;
-   
+  
   
    %U = (-D - log(G_target/(n)))/dt + alpha*D;
-   if round(time(i)*100)/100 == round(sample*100)/100 && time(i)<stop+dt
+   if round(time(i)*100)/100 == round(sample*100)/100
       n_measured(j,:) = n;
       G_measured(j,:) = G_curr;
       D_estimate(j,:) = log(n/G_curr);
-      alpha_actual(j,:) = alpha;
-      
+      %alpha_actual(j,:) = alpha;
       if j>1
+          U_prev = U_record(i-1,:); n_prev = n_measured(j-1,:);
           D_prev = D_estimate(j-1,:); D_now = D_estimate(j,:);
-          alpha_estimate(j-1,:)=(D_prev - D_now)/(D_prev*ts);
+          alpha_estimate(j-1,:)=(U_prev*ts + D_prev - D_now)/(D_prev*ts);
+          alpha_prev = alpha_estimate(j-1,:);
+      end
+      
+      if round(time(i)*100)/100 >= stop
+         alpha_curr =  alpha_prev + dalpha_dt(alpha_prev,n_prev,D_prev)*ts;
+         U_record(i,:) = (-D_now - log(G_target/(n)))/ts + alpha_curr*D_now;
       end
       time_s(j,:)=time(i);
       j=j+1; 
       sample = sample + ts; 
-   end
-   U=U_record(i,:);
-   
-   if round(time(i)*100)/100 == stop
-       a_save = zeros(1+loop,1); n_save = zeros(1+loop,1);
-       D_save = zeros(1+loop,1);
-       a_save(1,1)= alpha_estimate(j-2,:);
-       n_save(1,1)= n_measured(j-2,:);
-       D_save(1,1)= D_estimate(j-2,:);
-       for k = 1:loop
-          a_try = a_save(k,1); n_try = n_save(k,1);
-          D_try = D_save(k,1);
-          n_save(k+1,1) = n_try+dn_dt(n_try,D_try)*dt; 
-          a_save(k+1,1) = a_try+dalpha_dt(a_try,n_try,D_try)*dt;
-          D_save(k+1,1) = D_try+dD_dt(0,a_try,D_try)*dt;
-          D_save(D_save<0)=0;
-       end
-       D_trial = D_save(k+1,1); n_trial = n_save(k+1,1);
-       a_trial = a_save(k+1,1);
+   elseif time(i)>dt*2
+       U_record(i,:) = U_record(i-1,:);
    end
    
-   if round(time(i)*100)/100 >= stop
-       if rem(time(i),ts)==0
-           n_trial = n; D_trial = D;
-       end
-       
-       U = (-D_trial - log(G_target/(n_trial)))/dt + a_trial*D_trial;
-       U(U<0)=0;
-       n_next = n_trial+dn_dt(n_trial,D_trial)*dt; 
-       a_next = a_trial+dalpha_dt(a_trial,n_trial,D_trial)*dt;
-       D_next = D_try+dD_dt(U,a_trial,D_trial)*dt;
-       D_next(D_next<0)=0;
-       n_trial = n_next; D_trial = D_next; a_trial = a_next;
-       U_record(i+1,:)=U;
-   end
-   
-   
+   U = U_record(i,:);
    alphanew = alpha+dalpha_dt(alpha,n,D)*dt;
    Dnew = D+dD_dt(U,alpha,D)*dt;
    Dnew(Dnew<0)=0;
@@ -121,7 +95,6 @@ while alpha<10^5
    n_record(i+1,:)=nnew;
    D_record(i+1,:)=Dnew;
    alpha_record(i+1,:)=alphanew;
-   
    G(i+1,:)=nnew*exp(-Dnew);
 
 i = i+1;   
