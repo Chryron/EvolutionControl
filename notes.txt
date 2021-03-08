@@ -1,0 +1,6 @@
+gaussian shot noise
+G_now=G_previous(1-a)+a*G_measured
+autocorrelation
+integrating noise 
+integral of normal distribution with mean 0
+brownian motion
